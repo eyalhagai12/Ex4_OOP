@@ -4,6 +4,9 @@ OOP - Ex4
 Very simple GUI example for python client to communicates with the server and "play the game!"
 """
 from types import SimpleNamespace
+
+from Graph.GraphAlgo import GraphAlgo
+from Graph.GraphAlgo import load_poke_from_json
 from client import Client
 import json
 from pygame import gfxdraw
@@ -73,6 +76,9 @@ client.add_agent("{\"id\":0}")
 # client.add_agent("{\"id\":1}")
 # client.add_agent("{\"id\":2}")
 # client.add_agent("{\"id\":3}")
+
+# def find_optimal_agent()
+
 
 # this commnad starts the server - the game is running now
 client.start()
@@ -153,13 +159,30 @@ while client.is_running() == 'true':
     clock.tick(60)
 
     # choose next edge
-    for agent in agents:
-        if agent.dest == -1:
-            next_node = (agent.src - 1) % len(graph.Nodes)
-            client.choose_next_edge(
-                '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(next_node) + '}')
-            ttl = client.time_to_end()
-            print(ttl, client.get_info())
+
+    # for agent in agents:
+    #     if agent.dest == -1:
+    #         next_node = (agent.src - 1) % len(graph.Nodes)
+    #         client.choose_next_edge(
+    #             '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(next_node) + '}')
+    #         ttl = client.time_to_end()
+    #         print(ttl, client.get_info())
+
+    # build graph copy for algorithms
+    graph_cpy = graph.__copy__()
+    graph_algo = GraphAlgo(graph_cpy)
+    pokemon_list = load_poke_from_json(pokemons)
+    for pokemon in pokemon_list:
+        idd = max(graph_cpy.get_all_v().keys()) + 1
+        graph_cpy.add_node(node_id=idd, pos=pokemon["pos"], value=pokemon["value"], type=pokemon["type"])
+        tup = graph_cpy.find_edge_for_pokemon()
+        graph_cpy.add_edge(tup[0].src, idd, tup[1])
+        graph_cpy.add_edge(idd, tup[0].dst, tup[2])
+        graph_cpy.remove_edge(tup[0])
+
+    # choose next edge
+    for pokemon in pokemon_list:
+        pass
 
     client.move()
 # game over:

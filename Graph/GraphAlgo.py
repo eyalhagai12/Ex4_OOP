@@ -93,6 +93,9 @@ class GraphAlgo(GraphAlgoInterface):
         else:
             return False
 
+    def add_pokemons(self, pokemons: list):
+        pass
+
     def centerPoint(self) -> (int, float):
         """
         Finds the node that has the shortest distance to it's farthest node.
@@ -195,3 +198,4 @@ class GraphAlgo(GraphAlgoInterface):
 
     def __repr__(self):
         return f"{self.graph}"
+

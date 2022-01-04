@@ -1,4 +1,4 @@
-import copy
+import copy, math
 from Graph.GraphInterface import GraphInterface
 from Graph.Node import Node
 from Graph.Edge import Edge
@@ -169,6 +169,23 @@ class DiGraph(GraphInterface):
                 self.mc += 1
                 return True
             return False
+
+    def find_edge_for_pokemon(self, pokemon: Pokemon) -> tuple:
+        for edge in self.edges:
+            src_x = self.nodes[edge.src].pos.x
+            src_y = self.nodes[edge.src].pos.y
+            dest_x = self.nodes[edge.dest].pos.x
+            dest_y = self.nodes[edge.dest].pos.y
+            pok_x = pokemon.pos.x
+            pok_y = pokemon.pos.y
+            dist_edge = math.sqrt(math.pow(src_x - dest_x, 2) + math.pow(src_y - dest_y, 2))
+            dist_src_pokemon = math.sqrt(math.pow(src_x - pok_x, 2) + math.pow(src_y - pok_y, 2))
+            dist_pok_dest = math.sqrt(math.pow(dest_x - pok_x, 2) + math.pow(dest_y - pok_y, 2))
+            if dist_edge + 0.0001 >= dist_pok_dest + dist_src_pokemon:
+                if (edge.src > edge.dest and pokemon.type > 0) or (edge.src < edge.dest and pokemon.type < 0):
+                    weight1 = edge.weight * (dist_src_pokemon / dist_edge)
+                    weight2 = edge.weight - weight1
+                    return edge, weight1, weight2
 
     def __repr__(self):
         return f"Graph: |V|={len(self.nodes)} , |E|={len(self.edges)}"
