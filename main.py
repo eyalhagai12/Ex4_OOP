@@ -12,10 +12,9 @@ if __name__ == '__main__':
     graph_algo = GraphAlgo(DiGraph())
     graph_algo.load_from_json(graph_json)
     info = load_from_json(client.get_info())
-    pokemons_json = client.get_pokemons()
     for i in range(info.agents):
         client.add_agent("{\"id\":0}")
-    agents_json = client.get_agents()
-    pokemons = Graph.GraphAlgo.load_poke_from_json(pokemons_json)
+    agents = Graph.GraphAlgo.load_agents_from_json(client.get_agents())
+    pokemons = Graph.GraphAlgo.load_pokemons_from_json(client.get_pokemons())
     print("Done!")
 

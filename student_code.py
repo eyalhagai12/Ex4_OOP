@@ -3,10 +3,12 @@
 OOP - Ex4
 Very simple GUI example for python client to communicates with the server and "play the game!"
 """
+import math
 from types import SimpleNamespace
 
+from Game import Pokemon
 from Graph.GraphAlgo import GraphAlgo
-from Graph.GraphAlgo import load_poke_from_json
+from Graph.GraphAlgo import load_pokemons_from_json
 from client import Client
 import json
 from pygame import gfxdraw
@@ -73,11 +75,47 @@ def my_scale(data, x=False, y=False):
 radius = 15
 
 client.add_agent("{\"id\":0}")
+
+
 # client.add_agent("{\"id\":1}")
 # client.add_agent("{\"id\":2}")
 # client.add_agent("{\"id\":3}")
 
-# def find_optimal_agent()
+
+def find_optimal_agent(g_algo: GraphAlgo, pokemon: Pokemon, agent_list: list):
+    free = []
+    for agent in agent_list:
+        if agent.path is None:
+            free.append(agent)
+
+    min_weight = math.inf
+    path = []
+    optimal = None
+    # if there are free agents, find the shortest path from each agent's source to the pokemon
+    if free:
+        for agent in free:
+            w, p = g_algo.shortest_path(agent.src, pokemon.id)
+            if min_weight > w:
+                min_weight = w
+                path = p
+                optimal = agent
+        optimal._path = path
+        return optimal.id
+    # return the optimal agent's id that has the optimal path to the pokemon
+    # if no agents are free, find the optimal agent and concat the additional path to its original path
+    else:
+        for agent in agent_list:
+            # if the pokemon is already in the agent's path, this is the optimal agent
+            if pokemon.id in agent.path:
+                return agent.id
+            w, p = g_algo.shortest_path(agent.path[-1], pokemon.id)
+            if min_weight > w:
+                min_weight = w
+                path = p
+                optimal = agent
+        optimal.path.extend(path)
+        return optimal.id
+    # return the optimal agent's id that has the optimal path to the pokemon from its last destination
 
 
 # this commnad starts the server - the game is running now
@@ -171,7 +209,7 @@ while client.is_running() == 'true':
     # build graph copy for algorithms
     graph_cpy = graph.__copy__()
     graph_algo = GraphAlgo(graph_cpy)
-    pokemon_list = load_poke_from_json(pokemons)
+    pokemon_list = load_pokemons_from_json(pokemons)
     for pokemon in pokemon_list:
         idd = max(graph_cpy.get_all_v().keys()) + 1
         graph_cpy.add_node(node_id=idd, pos=pokemon["pos"], value=pokemon["value"], type=pokemon["type"])
@@ -181,8 +219,10 @@ while client.is_running() == 'true':
         graph_cpy.remove_edge(tup[0])
 
     # choose next edge
+    pokemon_list.sort(reversed)
     for pokemon in pokemon_list:
-        pass
+        pokemon.assigned_agent = find_optimal_agent(graph_algo, pokemon, agents)
+    
 
     client.move()
 # game over:

@@ -5,6 +5,7 @@ from multiprocessing import Process, Manager
 import matplotlib.pyplot as plt
 import warnings
 
+from Game.Agent import Agent
 from Game.Pokemon import Pokemon
 from Graph.GraphAlgoInterface import GraphAlgoInterface
 from Graph.GraphInterface import GraphInterface
@@ -13,7 +14,24 @@ from Graph.Edge import Edge
 from Graph.Utils import *
 
 
-def load_poke_from_json(file):
+def load_agents_from_json(file):
+    _dict = json.loads(file)
+
+    agents = []
+
+    for agent in _dict["Agents"]:
+        agent = agent["Agent"]
+        id = agent["id"]
+        value = agent["value"]
+        src = agent["src"]
+        dest = agent["dest"]
+        speed = agent["speed"]
+        pos = float(agent["pos"].split(",")[0]), float(agent["pos"].split(",")[1])
+        agents.append(Agent(id, value, src, dest, speed, pos))
+    return agents
+
+
+def load_pokemons_from_json(file):
     """
     Loads a graph from a json file.
     @param file: The path to the json file
@@ -198,4 +216,3 @@ class GraphAlgo(GraphAlgoInterface):
 
     def __repr__(self):
         return f"{self.graph}"
-

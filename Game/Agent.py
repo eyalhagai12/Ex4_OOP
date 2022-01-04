@@ -1,9 +1,11 @@
 
+
 class Agent:
     def __init__(self, _id, value, src, dest, speed, pos):
-        self._id = _id
-        self._value = value
-        self._src = src
-        self._dest = dest
-        self._speed = speed
-        self._pos = pos
+        self.id = _id
+        self.value = value
+        self.src = src
+        self.dest = dest
+        self.speed = speed
+        self.pos = pos
+        self.path = None
