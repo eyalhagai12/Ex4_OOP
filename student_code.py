@@ -3,87 +3,17 @@
 OOP - Ex4
 Very simple GUI example for python client to communicates with the server and "play the game!"
 """
-import sys
-import math as mt
-import time as tme
 from threading import Thread
 
+import Utils
 from GUI import GUI
 from Graph.DiGraph import DiGraph
 from client import Client
-from pygame import gfxdraw
 import pygame
-from pygame import *
 from Game.Agent import Agent
 from Game.GameInfo import load_info_from_json
 from Game.Pokemon import Pokemon
 from Graph.GraphAlgo import GraphAlgo, load_pokemons_from_json, load_agents_from_json
-from Graph.Button import Button
-
-
-def run_agent(agent: Agent, g_algo: GraphAlgo):
-    while len(agent.path) != 0:
-        p = agent.path[0]
-        if stop:  # global bool variable indicate when one pokemon found
-            return
-        client.choose_next_edge(
-            '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(agent.path[1 % len(agent.path)]) + '}')
-        agent.pos = g_algo.get_graph().nodes[agent.path[1 % len(agent.path)]].pos
-        agent.path.remove(agent.path[0])
-        if isinstance(g_algo.get_graph().get_all_v()[p], Pokemon):
-            client.move()
-            return
-
-
-def find_optimal_agent(agent_list: list, pokemon: Pokemon, graph: GraphAlgo) -> int:
-    free = []
-    min_weight = mt.inf
-    path = []
-    optimal = None
-
-    # find free agents
-    for agent in agent_list:
-        if len(agent.path) == 0:
-            free.append(agent)  # add to the list of free agents
-
-    if len(free) != 0:  # in case we found free agents
-        for agent in free:  # loop over the free agents
-            weight, temppath = graph.shortest_path(agent.src,
-                                                   pokemon.edge.src)  # find the shortest path from agent src to pokemon
-            weight1, temppath1 = graph.shortest_path(pokemon.edge.src, pokemon.edge.dst)
-            weight += weight1
-            temppath += temppath1
-            # in case we found an agent with shorter path, switch
-            if weight < min_weight:
-                min_weight = weight
-                path = temppath
-                optimal = agent
-
-        optimal.path = path  # update agent path
-        print(optimal.path)
-        return optimal.id  # return agent id
-
-    else:  # if all are busy, loop over the agents
-
-        for agent in agent_list:
-            # in case one of the agents already going to the pokemon node, allocate the same agent
-            if pokemon.edge.src in agent.path and pokemon.edge.dst in agent.path:
-                return agent.id
-            # find the shortest path from the agent last destination to the pokemon
-            weight, temppath = graph.shortest_path(agent.path[-1], pokemon.edge.src)
-            weight1, temppath1 = graph.shortest_path(pokemon.edge.src, pokemon.edge.dst)
-            weight += weight1
-            temppath += temppath1
-            # in case we found an agent with shorter path, switch
-            if weight < min_weight:
-                min_weight = weight
-                path = temppath
-                optimal = agent
-
-        optimal.path += path  # update the agent path
-        print(optimal.path)
-        return optimal.id
-
 
 if __name__ == '__main__':
     # default port
@@ -150,7 +80,7 @@ if __name__ == '__main__':
         # assign agent for each pokemon
         for pokemon in pokemon_list:
             # finds an agent for the pokemon
-            agent_id: int = find_optimal_agent(agent_list, pokemon, copy_algo)
+            agent_id: int = Utils.find_optimal_agent(agent_list, pokemon, copy_algo)
             pokemon.assigned_agent = agent_id
 
         stop = False  # global variable, used in threads
@@ -159,14 +89,14 @@ if __name__ == '__main__':
         if len(agent_list) > 1:
             # loop between the agents in case of multiple agents
             for agent in agent_list:
-                run_agent(agent, copy_algo)  # run the agent on its path
+                Utils.run_agent(agent, copy_algo, client, stop)  # run the agent on its path
         else:
             # use a thread for better results in case of one agent
             busy_agents = agent_list
             threads = []
             # create thread for the agent
             for agent in busy_agents:
-                thread = Thread(target=run_agent, args=(agent, copy_algo))
+                thread = Thread(target=Utils.run_agent, args=(agent, copy_algo, client, stop))
                 threads.append(thread)
                 thread.start()
 
