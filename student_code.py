@@ -36,7 +36,18 @@ def my_scale(data, x=False, y=False):
         return scale(data, 50, screen.get_height() - 50, min_y, max_y)
 
 
-
+def run_agent(agent: Agent, g_algo: GraphAlgo):
+    while len(agent.path) != 0:
+        p = agent.path[0]
+        if stop:  # global bool variable indicate when one pokemon found
+            return
+        client.choose_next_edge(
+            '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(agent.path[1 % len(agent.path)]) + '}')
+        agent.pos = g_algo.get_graph().nodes[agent.path[1 % len(agent.path)]].pos
+        agent.path.remove(agent.path[0])
+        if isinstance(g_algo.get_graph().get_all_v()[p], Pokemon):
+            client.move()
+            return
 
 def find_optimal_agent(g_algo: GraphAlgo, pokemon: Pokemon, agent_list: list):
     free = []
