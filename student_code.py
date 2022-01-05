@@ -197,10 +197,39 @@ if __name__ == '__main__':
         # refresh rate
         clock.tick(10)
 
-        # choose next edge
-        pokemon_list.sort(reversed)
+        pokemon_list.sort(reverse=True, key=lambda x: x.value)
+        # assign agent for each pokemon
         for pokemon in pokemon_list:
-            pokemon.assigned_agent = find_optimal_agent(graph_algo, pokemon, agents)
+            # finds an agent for the pokemon
+            agent_id: int = find_optimal_agent(agent_list, pokemon, copy_algo)
+            pokemon.assigned_agent = agent_id
+
+        stop = False  # global variable, used in threads
+
+        # check the number of agents
+        if len(agent_list) > 1:
+            # loop between the agents in case of multiple agents
+            for agent in agent_list:
+                run_agent(agent, copy_algo)  # run the agent on its path
+        else:
+            # use a thread for better results in case of one agent
+            busy_agents = agent_list
+            threads = []
+            # create thread for the agent
+            for agent in busy_agents:
+                thread = Thread(target=run_agent, args=(agent, copy_algo))
+                threads.append(thread)
+                thread.start()
+
+            i = 0
+            # loop until the thread stopped
+            while threads[i % len(threads)].is_alive():
+                i += 1
+
+            stop = True  # if the thread stopped
+            for thread in threads:
+                thread.join()
+
         
 
         client.move()
