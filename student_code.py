@@ -212,13 +212,28 @@ if __name__ == '__main__':
             y = my_scale(float(p.pos[1]), y=True)
             pygame.draw.circle(screen, Color(255, 128, 0), (x, y), 10)
 
+        # draw stop button and more attributes for the user comfort
+        stop_button = Button(screen, "STOP", FONT, 50, 30, (10, 10), 5)
+        stop_button.check_click()
+        stop_button.draw()
+        time_to_play = FONT.render(f"Time: {float(client.time_to_end()) / 1000}", True, Color(255, 64, 64))
+        screen.blit(time_to_play, (70, 10))
+        overall_points = FONT.render(f"Points: {str(info.grade)}", True, Color(255, 64, 64))
+        screen.blit(overall_points, (250, 10))
+        moves_counter = FONT.render(f"Moves: {str(info.moves)}", True, Color(255, 64, 64))
+        screen.blit(moves_counter, (400, 10))
+
         # update screen changes
         display.update()
 
         # refresh rate
         clock.tick(10)
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GUI
-        
+
+        """
+        Algorithm part -> when there is only one agent use thread
+        else, use for loop.
+        """
         pokemon_list.sort(reverse=True, key=lambda x: x.value)
         # assign agent for each pokemon
         for pokemon in pokemon_list:
@@ -251,6 +266,11 @@ if __name__ == '__main__':
             stop = True  # if the thread stopped
             for thread in threads:
                 thread.join()
+
+        if stop_button.pressed:  # check if the client has stopped the game
+            client.stop_connection()
+            pygame.quit()
+            exit(0)
 
         print(pokemon_list)
 
