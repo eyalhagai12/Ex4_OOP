@@ -136,14 +136,13 @@ if __name__ == '__main__':
     client.start()
 
     while client.is_running() == 'true':
-        # get info from server
-        info = load_info_from_json(client.get_info())
+
+        info = load_info_from_json(client.get_info())  # each round, get the info from the server
+
         # initialize pokemon list
+        graph_cpy = graph_algo.graph.__copy__()
         pokemon_list = load_pokemons_from_json(client.get_pokemons())
         agent_list = load_agents_from_json(client.get_agents())
-        
-        # build graph copy for algorithms
-        graph_cpy = graph_algo.graph.__copy__()
         for pokemon in pokemon_list:
             idd = max(graph_cpy.get_all_v().keys()) + 1
             graph_cpy.add_node(node_id=idd, pos=pokemon.pos, value=pokemon.value, type=pokemon.type)
@@ -151,56 +150,64 @@ if __name__ == '__main__':
             graph_cpy.add_edge(tup[0].src, idd, tup[1])
             graph_cpy.add_edge(idd, tup[0].dst, tup[2])
             pokemon.edge = tup[0]
-            graph_cpy.remove_edge(tup[0].src, tup[0].dst)
+            try:
+                print(f"edge: source: {tup[0].src}, destination: {tup[0].dst})")
+                graph_cpy.remove_edge(tup[0].src, tup[0].dst)
+            except Exception as e:
+                print("Wtf")
 
+        # print(graph_cpy)
+        copy_algo = GraphAlgo(graph_cpy)
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GUI
         # check events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit(0)
-
         # refresh surface
         screen.fill(Color(0, 0, 0))
 
         # draw nodes
-        for n in graph.Nodes:
-            x = my_scale(n.pos.x, x=True)
-            y = my_scale(n.pos.y, y=True)
-
+        for n in graph_algo.get_graph().nodes.values():
+            x = my_scale(n.pos[0], x=True)
+            y = my_scale(n.pos[1], y=True)
             # its just to get a nice antialiased circle
             gfxdraw.filled_circle(screen, int(x), int(y),
-                                radius, Color(64, 80, 174))
+                                    radius, Color(240, 230, 140))
             gfxdraw.aacircle(screen, int(x), int(y),
-                            radius, Color(255, 255, 255))
+                                radius, Color(255, 255, 255))
 
             # draw the node id
-            id_srf = FONT.render(str(n.id), True, Color(255, 255, 255))
+            id_srf = FONT.render(str(n.id), True, Color(0, 0, 0))
             rect = id_srf.get_rect(center=(x, y))
             screen.blit(id_srf, rect)
 
         # draw edges
-        for e in graph.Edges:
+        for e in graph_algo.get_graph().edges.values():
             # find the edge nodes
-            src = next(n for n in graph.Nodes if n.id == e.src)
-            dest = next(n for n in graph.Nodes if n.id == e.dest)
+            src = next(n for n in graph_algo.get_graph().nodes.values() if n.id == e.src)
+            dest = next(n for n in graph_algo.get_graph().nodes.values() if n.id == e.dst)
 
             # scaled positions
-            src_x = my_scale(src.pos.x, x=True)
-            src_y = my_scale(src.pos.y, y=True)
-            dest_x = my_scale(dest.pos.x, x=True)
-            dest_y = my_scale(dest.pos.y, y=True)
+            src_x = my_scale(src.pos[0], x=True)
+            src_y = my_scale(src.pos[1], y=True)
+            dest_x = my_scale(dest.pos[0], x=True)
+            dest_y = my_scale(dest.pos[1], y=True)
 
             # draw the line
-            pygame.draw.line(screen, Color(61, 72, 126),
-                            (src_x, src_y), (dest_x, dest_y))
+            pygame.draw.line(screen, Color(51, 161, 201), (src_x, src_y), (dest_x, dest_y))
 
         # draw agents
-        for agent in agents:
-            pygame.draw.circle(screen, Color(122, 61, 23),
-                            (int(agent.pos.x), int(agent.pos.y)), 10)
-        # draw pokemons (note: should differ (GUI wise) between the up and the down pokemons (currently they are marked in the same way).
-        for p in pokemons:
-            pygame.draw.circle(screen, Color(0, 255, 255), (int(p.pos.x), int(p.pos.y)), 10)
+        for agent in agent_list:
+            x = my_scale(float(agent.pos[0]), x=True)
+            y = my_scale(float(agent.pos[1]), y=True)
+            pygame.draw.circle(screen, Color(107, 142, 35), (x, y), 10)
+
+        for p in pokemon_list:
+            x = my_scale(float(p.pos[0]), x=True)
+            y = my_scale(float(p.pos[1]), y=True)
+            pygame.draw.circle(screen, Color(255, 128, 0), (x, y), 10)
 
         # update screen changes
         display.update()
@@ -208,6 +215,7 @@ if __name__ == '__main__':
         # refresh rate
         clock.tick(10)
 
+        # choose next edge
         pokemon_list.sort(reverse=True, key=lambda x: x.value)
         # assign agent for each pokemon
         for pokemon in pokemon_list:
@@ -240,10 +248,7 @@ if __name__ == '__main__':
             stop = True  # if the thread stopped
             for thread in threads:
                 thread.join()
-
-        
-
-        client.move()
+                
     # game over:
 
 
