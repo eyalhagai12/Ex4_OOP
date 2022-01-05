@@ -97,8 +97,6 @@ def find_optimal_agent(agent_list: list, pokemon: Pokemon, graph: GraphAlgo) -> 
         optimal.path += path  # update the agent path
         print(optimal.path)
         return optimal.id
-    # return the optimal agent's id that has the optimal path to the pokemon from its last destination
-
 
 
 if __name__ == '__main__':
@@ -114,27 +112,31 @@ if __name__ == '__main__':
     screen = display.set_mode((WIDTH, HEIGHT), depth=32, flags=RESIZABLE)
     clock = pygame.time.Clock()
     pygame.font.init()
-
     client = Client()
     client.start_connection(HOST, PORT)
     graph_json = client.get_graph()
     FONT = pygame.font.SysFont('Arial', 20, bold=True)
 
+    # load the json string
+    graph_algo = GraphAlgo(DiGraph())
+    graph_algo.load_from_json(client.get_graph())
+
     # get data proportions
-    min_x = min(list(graph_algo.get_graph().nodes.values().Nodes), key=lambda n: n.pos.x).pos.x
-    min_y = min(list(graph_algo.get_graph().nodes.values().Nodes), key=lambda n: n.pos.y).pos.y
-    max_x = max(list(graph_algo.get_graph().nodes.values().Nodes), key=lambda n: n.pos.x).pos.x
-    max_y = max(list(graph_algo.get_graph().nodes.values().Nodes), key=lambda n: n.pos.y).pos.y
+    min_x = min(list(graph_algo.get_graph().nodes.values()), key=lambda n: n.pos[0]).pos[0]
+    min_y = min(list(graph_algo.get_graph().nodes.values()), key=lambda n: n.pos[1]).pos[1]
+    max_x = max(list(graph_algo.get_graph().nodes.values()), key=lambda n: n.pos[0]).pos[0]
+    max_y = max(list(graph_algo.get_graph().nodes.values()), key=lambda n: n.pos[1]).pos[1]
 
     radius = 15
-    # create info object and add agents
+    # create am info object and add as needed agents
     info = load_info_from_json(client.get_info())
     for i in range(info.agents):
         client.add_agent("{\"id\":" + str(i) + "}")
 
-    # this commnad starts the server - the game is running now
+    # this command starts the server - the game is running now
     client.start()
 
+    # game started:
     while client.is_running() == 'true':
 
         info = load_info_from_json(client.get_info())  # each round, get the info from the server
@@ -196,7 +198,8 @@ if __name__ == '__main__':
             dest_y = my_scale(dest.pos[1], y=True)
 
             # draw the line
-            pygame.draw.line(screen, Color(51, 161, 201), (src_x, src_y), (dest_x, dest_y))
+            pygame.draw.line(screen, Color(51, 161, 201),
+                                (src_x, src_y), (dest_x, dest_y))
 
         # draw agents
         for agent in agent_list:
@@ -214,8 +217,8 @@ if __name__ == '__main__':
 
         # refresh rate
         clock.tick(10)
-
-        # choose next edge
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GUI
+        
         pokemon_list.sort(reverse=True, key=lambda x: x.value)
         # assign agent for each pokemon
         for pokemon in pokemon_list:
@@ -248,7 +251,7 @@ if __name__ == '__main__':
             stop = True  # if the thread stopped
             for thread in threads:
                 thread.join()
-                
-    # game over:
 
+        print(pokemon_list)
 
+# game over
