@@ -15,6 +15,8 @@ from Game.GameInfo import load_info_from_json
 from Game.Pokemon import Pokemon
 from Graph.GraphAlgo import GraphAlgo, load_pokemons_from_json, load_agents_from_json
 
+DEBUG = True
+
 if __name__ == '__main__':
     # default port
     PORT = 6666
@@ -28,13 +30,20 @@ if __name__ == '__main__':
     graph_algo = GraphAlgo(DiGraph())
     graph_algo.load_from_json(client.get_graph())
 
+    # create graph copy
+    graph_cpy = graph_algo.graph.__copy__()
+    copy_algo = GraphAlgo(graph_cpy)
+
     # create am info object and add as needed agents
     info = load_info_from_json(client.get_info())
     for i in range(info.agents):
         client.add_agent("{\"id\":" + str(i) + "}")
 
     # init GUI
-    gui = GUI(graph_algo, [], [], client)
+    if not DEBUG:
+        gui = GUI(graph_algo, [], [], client)
+    else:
+        gui = GUI(copy_algo, [], [], client)
 
     # this command starts the server - the game is running now
     client.start()
@@ -44,9 +53,10 @@ if __name__ == '__main__':
         info = load_info_from_json(client.get_info())  # each round, get the info from the server
 
         # initialize lists
-        graph_cpy = graph_algo.graph.__copy__()
+        # graph_cpy = graph_algo.graph.__copy__()
         pokemon_list = load_pokemons_from_json(client.get_pokemons())
         agent_list = load_agents_from_json(client.get_agents())
+        print("agents: {}".format(len(agent_list)))
 
         # update GUI
         gui.set_pokemons(pokemon_list)
@@ -59,6 +69,7 @@ if __name__ == '__main__':
             graph_cpy.add_edge(tup[0].src, idd, tup[1])
             graph_cpy.add_edge(idd, tup[0].dst, tup[2])
             pokemon.edge = tup[0]
+            pokemon.id = idd
             try:
                 print(f"edge: source: {tup[0].src}, destination: {tup[0].dst})")
                 graph_cpy.remove_edge(tup[0].src, tup[0].dst)
@@ -66,7 +77,7 @@ if __name__ == '__main__':
                 print("Wtf")
 
         # print(graph_cpy)
-        copy_algo = GraphAlgo(graph_cpy)
+        # copy_algo = GraphAlgo(graph_cpy)
 
         # ~~~~~ GUI ~~~~~ #
         gui.run_gui(info)

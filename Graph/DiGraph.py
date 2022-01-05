@@ -187,5 +187,9 @@ class DiGraph(GraphInterface):
                     weight2 = edge.weight - weight1
                     return edge, weight1, weight2
 
+    def get_pokemons(self):
+        pokemons = [pokemon for pokemon in self.nodes if isinstance(pokemon, Pokemon)]
+        return pokemons
+
     def __repr__(self):
         return f"Graph: |V|={len(self.nodes)} , |E|={len(self.edges)}"

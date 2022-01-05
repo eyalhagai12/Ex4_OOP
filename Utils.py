@@ -52,13 +52,16 @@ def find_optimal_agent(agent_list: list, pokemon: Pokemon, graph: GraphAlgo) -> 
 
         for agent in agent_list:
             # in case one of the agents already going to the pokemon node, allocate the same agent
-            if pokemon.edge.src in agent.path and pokemon.edge.dst in agent.path:
+            if pokemon.edge.src in agent.path and pokemon.edge.dst in agent.path:  # need to change this check
                 return agent.id
+
             # find the shortest path from the agent last destination to the pokemon
+            print("Eyals path: {}".format(check_agent_path(agent, pokemon, graph)[0]))
             weight, temppath = graph.shortest_path(agent.path[-1], pokemon.edge.src)
             weight1, temppath1 = graph.shortest_path(pokemon.edge.src, pokemon.edge.dst)
             weight += weight1
             temppath += temppath1
+
             # in case we found an agent with shorter path, switch
             if weight < min_weight:
                 min_weight = weight
@@ -68,3 +71,16 @@ def find_optimal_agent(agent_list: list, pokemon: Pokemon, graph: GraphAlgo) -> 
         optimal.path += path  # update the agent path
         print(optimal.path)
         return optimal.id
+
+
+def check_agent_path(agent, pokemon, algo):
+    path = agent.path.copy()
+    path.append(pokemon.id)
+    new_path, path_weight = algo.TSP(path)
+    estimated_path = []
+
+    for idx in new_path:
+        if idx not in estimated_path:
+            estimated_path.append(idx)
+
+    return estimated_path, path_weight
