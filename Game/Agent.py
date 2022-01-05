@@ -8,4 +8,4 @@ class Agent:
         self.dest = dest
         self.speed = speed
         self.pos = pos
-        self.path = None
+        self.path = []

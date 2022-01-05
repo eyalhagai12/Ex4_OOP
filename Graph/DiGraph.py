@@ -171,18 +171,18 @@ class DiGraph(GraphInterface):
             return False
 
     def find_edge_for_pokemon(self, pokemon: Pokemon) -> tuple:
-        for edge in self.edges:
-            src_x = self.nodes[edge.src].pos.x
-            src_y = self.nodes[edge.src].pos.y
-            dest_x = self.nodes[edge.dest].pos.x
-            dest_y = self.nodes[edge.dest].pos.y
-            pok_x = pokemon.pos.x
-            pok_y = pokemon.pos.y
-            dist_edge = math.sqrt(math.pow(src_x - dest_x, 2) + math.pow(src_y - dest_y, 2))
-            dist_src_pokemon = math.sqrt(math.pow(src_x - pok_x, 2) + math.pow(src_y - pok_y, 2))
-            dist_pok_dest = math.sqrt(math.pow(dest_x - pok_x, 2) + math.pow(dest_y - pok_y, 2))
+        for edge in self.edges.values():
+            src_x = self.nodes[edge.src].pos[0]
+            src_y = self.nodes[edge.src].pos[1]
+            dst_x = self.nodes[edge.dst].pos[0]
+            dst_y = self.nodes[edge.dst].pos[1]
+            pokemon_x = pokemon.pos[0]
+            pokemon_y = pokemon.pos[1]
+            dist_edge = math.sqrt(math.pow(src_x - dst_x, 2) + math.pow(src_y - dst_y, 2))
+            dist_src_pokemon = math.sqrt(math.pow(src_x - pokemon_x, 2) + math.pow(src_y - pokemon_y, 2))
+            dist_pok_dest = math.sqrt(math.pow(dst_x - pokemon_x, 2) + math.pow(dst_y - pokemon_y, 2))
             if dist_edge + 0.0001 >= dist_pok_dest + dist_src_pokemon:
-                if (edge.src > edge.dest and pokemon.type > 0) or (edge.src < edge.dest and pokemon.type < 0):
+                if (edge.src > edge.dst and pokemon.type > 0) or (edge.src < edge.dst and pokemon.type < 0):
                     weight1 = edge.weight * (dist_src_pokemon / dist_edge)
                     weight2 = edge.weight - weight1
                     return edge, weight1, weight2

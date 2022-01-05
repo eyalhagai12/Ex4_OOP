@@ -8,11 +8,11 @@ class Pokemon(Node):
         self.type = type
         self.assigned_agent = None
 
-    def __lt__(self, other):
-        return self.value < other.value
-
-    def __gt__(self, other):
-        return self.value > other.value
-
-    def __eq__(self, other):
-        return self.value == other.value
+    # def __lt__(self, other):
+    #     return self.value < other.value
+    #
+    # def __gt__(self, other):
+    #     return self.value > other.value
+    #
+    # def __eq__(self, other):
+    #     return self.value == other.value

@@ -1,21 +1,21 @@
 import json
 
 
-def load_from_json(file) -> 'GameInfo':
+def load_info_from_json(file) -> 'GameInfo':
     """
     this method creates the game info from json file
     """
-    dictionary = json.loads(file)
-    dictionary = dictionary.get("GameServer")
-    id = int(dictionary.get("id"))
-    moves = int(dictionary.get("moves"))
-    grade = int(dictionary.get("grade"))
-    game_level = int(dictionary.get("game_level"))
-    max_user_level = int(dictionary.get("max_user_level"))
-    pokemons = int(dictionary.get("pokemons"))
-    agents = int(dictionary.get("agents"))
-    is_logged_in = bool(dictionary.get("is_logged_in"))
-    graph = str(dictionary.get("graph"))
+    dictt = json.loads(file)
+    dictt = dictt.get("GameServer")
+    id = int(dictt.get("id"))
+    moves = int(dictt.get("moves"))
+    grade = int(dictt.get("grade"))
+    game_level = int(dictt.get("game_level"))
+    max_user_level = int(dictt.get("max_user_level"))
+    pokemons = int(dictt.get("pokemons"))
+    agents = int(dictt.get("agents"))
+    is_logged_in = bool(dictt.get("is_logged_in"))
+    graph = str(dictt.get("graph"))
     return GameInfo(id, moves, grade, game_level, max_user_level, pokemons, agents, is_logged_in, graph)
 
 
