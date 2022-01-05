@@ -125,20 +125,23 @@ if __name__ == '__main__':
     client.start()
 
     while client.is_running() == 'true':
-        pokemons = json.loads(client.get_pokemons(),
-                            object_hook=lambda d: SimpleNamespace(**d)).Pokemons
-        pokemons = [p.Pokemon for p in pokemons]
-        for p in pokemons:
-            x, y, _ = p.pos.split(',')
-            p.pos = SimpleNamespace(x=my_scale(
-                float(x), x=True), y=my_scale(float(y), y=True))
-        agents = json.loads(client.get_agents(),
-                            object_hook=lambda d: SimpleNamespace(**d)).Agents
-        agents = [agent.Agent for agent in agents]
-        for a in agents:
-            x, y, _ = a.pos.split(',')
-            a.pos = SimpleNamespace(x=my_scale(
-                float(x), x=True), y=my_scale(float(y), y=True))
+        # get info from server
+        info = load_info_from_json(client.get_info())
+        # initialize pokemon list
+        pokemon_list = load_pokemons_from_json(client.get_pokemons())
+        agent_list = load_agents_from_json(client.get_agents())
+        
+        # build graph copy for algorithms
+        graph_cpy = graph_algo.graph.__copy__()
+        for pokemon in pokemon_list:
+            idd = max(graph_cpy.get_all_v().keys()) + 1
+            graph_cpy.add_node(node_id=idd, pos=pokemon.pos, value=pokemon.value, type=pokemon.type)
+            tup = graph_algo.graph.find_edge_for_pokemon(pokemon)
+            graph_cpy.add_edge(tup[0].src, idd, tup[1])
+            graph_cpy.add_edge(idd, tup[0].dst, tup[2])
+            pokemon.edge = tup[0]
+            graph_cpy.remove_edge(tup[0].src, tup[0].dst)
+
         # check events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -193,20 +196,6 @@ if __name__ == '__main__':
 
         # refresh rate
         clock.tick(10)
-
-        # build graph copy for algorithms
-        # initialize pokemon list
-        graph_cpy = graph_algo.graph.__copy__()
-        pokemon_list = load_pokemons_from_json(client.get_pokemons())
-        agent_list = load_agents_from_json(client.get_agents())
-        for pokemon in pokemon_list:
-            idd = max(graph_cpy.get_all_v().keys()) + 1
-            graph_cpy.add_node(node_id=idd, pos=pokemon.pos, value=pokemon.value, type=pokemon.type)
-            tup = graph_algo.graph.find_edge_for_pokemon(pokemon)
-            graph_cpy.add_edge(tup[0].src, idd, tup[1])
-            graph_cpy.add_edge(idd, tup[0].dst, tup[2])
-            pokemon.edge = tup[0]
-            graph_cpy.remove_edge(tup[0].src, tup[0].dst)
 
         # choose next edge
         pokemon_list.sort(reversed)
