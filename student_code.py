@@ -176,7 +176,7 @@ if __name__ == '__main__':
             y = my_scale(n.pos[1], y=True)
             # its just to get a nice antialiased circle
             gfxdraw.filled_circle(screen, int(x), int(y),
-                                    radius, Color(240, 230, 140))
+                                    radius, Color(64, 80, 174))
             gfxdraw.aacircle(screen, int(x), int(y),
                                 radius, Color(255, 255, 255))
 
@@ -198,30 +198,34 @@ if __name__ == '__main__':
             dest_y = my_scale(dest.pos[1], y=True)
 
             # draw the line
-            pygame.draw.line(screen, Color(51, 161, 201),
+            pygame.draw.line(screen, Color(61, 72, 126),
                                 (src_x, src_y), (dest_x, dest_y))
 
         # draw agents
         for agent in agent_list:
             x = my_scale(float(agent.pos[0]), x=True)
             y = my_scale(float(agent.pos[1]), y=True)
-            pygame.draw.circle(screen, Color(107, 142, 35), (x, y), 10)
+            pygame.draw.circle(screen, Color(122, 61, 23), (x, y), 10)
 
         for p in pokemon_list:
             x = my_scale(float(p.pos[0]), x=True)
             y = my_scale(float(p.pos[1]), y=True)
-            pygame.draw.circle(screen, Color(255, 128, 0), (x, y), 10)
+            if p.type == 1:
+                pygame.draw.circle(screen, Color(0, 255, 255), (x, y), 10)
+            else:
+                pygame.draw.circle(screen, Color(255, 0, 255), (x, y), 10)
+
 
         # draw stop button and more attributes for the user comfort
         stop_button = Button(screen, "STOP", FONT, 50, 30, (10, 10), 5)
         stop_button.check_click()
         stop_button.draw()
-        time_to_play = FONT.render(f"Time: {float(client.time_to_end()) / 1000}", True, Color(255, 64, 64))
-        screen.blit(time_to_play, (70, 10))
-        overall_points = FONT.render(f"Points: {str(info.grade)}", True, Color(255, 64, 64))
-        screen.blit(overall_points, (250, 10))
-        moves_counter = FONT.render(f"Moves: {str(info.moves)}", True, Color(255, 64, 64))
-        screen.blit(moves_counter, (400, 10))
+        time_to_play = FONT.render(f"Time: {float(client.time_to_end()) / 1000}", True, Color(255, 255, 255))
+        screen.blit(time_to_play, (320, 10))
+        overall_points = FONT.render(f"Points: {str(info.grade)}", True, Color(255, 255, 255))
+        screen.blit(overall_points, (520, 10))
+        moves_counter = FONT.render(f"Moves: {str(info.moves)}", True, Color(255, 255, 255))
+        screen.blit(moves_counter, (720, 10))
 
         # update screen changes
         display.update()
