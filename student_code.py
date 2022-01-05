@@ -28,7 +28,6 @@ def scale(data, min_screen, max_screen, min_data, max_data):
 
 
 # decorate scale with the correct values
-
 def my_scale(data, x=False, y=False):
     if x:
         return scale(data, 50, screen.get_width() - 50, min_x, max_x)
@@ -49,38 +48,54 @@ def run_agent(agent: Agent, g_algo: GraphAlgo):
             client.move()
             return
 
-def find_optimal_agent(g_algo: GraphAlgo, pokemon: Pokemon, agent_list: list):
-    free = []
-    for agent in agent_list:
-        if agent.path is None:
-            free.append(agent)
 
-    min_weight = math.inf
+def find_optimal_agent(agent_list: list, pokemon: Pokemon, graph: GraphAlgo) -> int:
+    free = []
+    min_weight = mt.inf
     path = []
     optimal = None
-    # if there are free agents, find the shortest path from each agent's source to the pokemon
-    if free:
-        for agent in free:
-            w, p = g_algo.shortest_path(agent.src, pokemon.id)
-            if min_weight > w:
-                min_weight = w
-                path = p
+
+    # find free agents
+    for agent in agent_list:
+        if len(agent.path) == 0:
+            free.append(agent)  # add to the list of free agents
+
+    if len(free) != 0:  # in case we found free agents
+        for agent in free:  # loop over the free agents
+            weight, temppath = graph.shortest_path(agent.src,
+                                                   pokemon.edge.src)  # find the shortest path from agent src to pokemon
+            weight1, temppath1 = graph.shortest_path(pokemon.edge.src, pokemon.edge.dst)
+            weight += weight1
+            temppath += temppath1
+            # in case we found an agent with shorter path, switch
+            if weight < min_weight:
+                min_weight = weight
+                path = temppath
                 optimal = agent
-        optimal._path = path
-        return optimal.id
-    # return the optimal agent's id that has the optimal path to the pokemon
-    # if no agents are free, find the optimal agent and concat the additional path to its original path
-    else:
+
+        optimal.path = path  # update agent path
+        print(optimal.path)
+        return optimal.id  # return agent id
+
+    else:  # if all are busy, loop over the agents
+
         for agent in agent_list:
-            # if the pokemon is already in the agent's path, this is the optimal agent
-            if pokemon.id in agent.path:
+            # in case one of the agents already going to the pokemon node, allocate the same agent
+            if pokemon.edge.src in agent.path and pokemon.edge.dst in agent.path:
                 return agent.id
-            w, p = g_algo.shortest_path(agent.path[-1], pokemon.id)
-            if min_weight > w:
-                min_weight = w
-                path = p
+            # find the shortest path from the agent last destination to the pokemon
+            weight, temppath = graph.shortest_path(agent.path[-1], pokemon.edge.src)
+            weight1, temppath1 = graph.shortest_path(pokemon.edge.src, pokemon.edge.dst)
+            weight += weight1
+            temppath += temppath1
+            # in case we found an agent with shorter path, switch
+            if weight < min_weight:
+                min_weight = weight
+                path = temppath
                 optimal = agent
-        optimal.path.extend(path)
+
+        optimal.path += path  # update the agent path
+        print(optimal.path)
         return optimal.id
     # return the optimal agent's id that has the optimal path to the pokemon from its last destination
 
