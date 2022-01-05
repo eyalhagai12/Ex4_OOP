@@ -15,9 +15,9 @@ def run_agent(agent: Agent, g_algo: GraphAlgo, client: Client, stop: bool):
             '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(agent.path[1 % len(agent.path)]) + '}')
         agent.pos = g_algo.get_graph().nodes[agent.path[1 % len(agent.path)]].pos
         agent.path.remove(agent.path[0])
-        if isinstance(g_algo.get_graph().get_all_v()[p], Pokemon):
-            client.move()
-            return
+        # if isinstance(g_algo.get_graph().get_all_v()[p], Pokemon):
+        #     client.move()
+        #     return
 
 
 def find_optimal_agent(agent_list: list, pokemon: Pokemon, graph: GraphAlgo) -> int:

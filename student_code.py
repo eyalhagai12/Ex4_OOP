@@ -114,6 +114,7 @@ if __name__ == '__main__':
             pygame.quit()
             exit(0)
 
+        client.move()
         print(pokemon_list)
 
 # game over
