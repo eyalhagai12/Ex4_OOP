@@ -191,5 +191,11 @@ class DiGraph(GraphInterface):
         pokemons = [pokemon for pokemon in self.nodes if isinstance(pokemon, Pokemon)]
         return pokemons
 
+    def check_pos(self, node: Node):
+        for graph_node in self.nodes.values():
+            if node.compare_pos(graph_node):
+                return False
+        return True
+
     def __repr__(self):
         return f"Graph: |V|={len(self.nodes)} , |E|={len(self.edges)}"

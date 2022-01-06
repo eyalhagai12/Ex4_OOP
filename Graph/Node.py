@@ -83,6 +83,8 @@ class Node:
     """
     comparing operators
     """
+    def compare_pos(self, other):
+        return other.pos == self.pos
 
     def __lt__(self, other):
         return self.weight < other.weight

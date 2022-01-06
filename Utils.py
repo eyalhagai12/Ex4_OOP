@@ -1,3 +1,4 @@
+import math
 import math as mt
 
 from Game.Agent import Agent
@@ -84,3 +85,47 @@ def check_agent_path(agent, pokemon, algo):
             estimated_path.append(idx)
 
     return estimated_path, path_weight
+
+
+def current_path_weight(algo: GraphAlgo, agent):
+    result = 0
+
+    for i in range(len(agent.path) - 1):
+        result += algo.get_graph().get_node(agent.path[i]).get_out_edges()[agent.path[i + 1]].weight
+
+    return result
+
+
+def best_agent(algo: GraphAlgo, agent_list, pokemon):
+    """
+    Find best agent for pokemon
+    """
+    free_agents = [agent for agent in agent_list if len(agent.path) == 0]
+    best_agent = None
+    best_path = []
+    min_path = math.inf
+
+    # if there are free agents find the closest one
+    if len(free_agents) > 0:
+        for agent in free_agents:
+            path_weight, path = algo.shortest_path(agent.src, pokemon.edge.src)
+            edge_weight = algo.get_graph().get_edge(pokemon.edge.src, pokemon.id).weight
+            total_weight = path_weight + edge_weight
+
+            if total_weight < min_path:
+                min_path = total_weight
+                best_agent = agent
+                best_path = path + [pokemon.edge.dst]
+    else:
+        # else use tsp to find the ideal path
+        for agent in agent_list:
+            # current_weight = current_path_weight(algo, agent)
+            path, weight = check_agent_path(agent, pokemon, algo)
+
+            if weight < min_path:
+                min_path = weight
+                best_agent = agent
+                best_path = path
+
+    best_agent.path = best_path
+    return best_agent
