@@ -10,9 +10,7 @@ from GUI import GUI
 from Graph.DiGraph import DiGraph
 from client import Client
 import pygame
-from Game.Agent import Agent
 from Game.GameInfo import load_info_from_json
-from Game.Pokemon import Pokemon
 from Graph.GraphAlgo import GraphAlgo, load_pokemons_from_json, load_agents_from_json
 
 if __name__ == '__main__':
@@ -28,7 +26,7 @@ if __name__ == '__main__':
     graph_algo = GraphAlgo(DiGraph())
     graph_algo.load_from_json(client.get_graph())
 
-    # create am info object and add as needed agents
+    # create info object and add relevant agents
     info = load_info_from_json(client.get_info())
     for i in range(info.agents):
         client.add_agent("{\"id\":" + str(i) + "}")
@@ -41,9 +39,9 @@ if __name__ == '__main__':
     # game started:
     while client.is_running() == 'true':
 
-        info = load_info_from_json(client.get_info())  # each round, get the info from the server
+        info = load_info_from_json(client.get_info())  # for each loop refresh info
 
-        # initialize lists
+        # initialize graph and lists
         graph_cpy = graph_algo.graph.__copy__()
         pokemon_list = load_pokemons_from_json(client.get_pokemons())
         agent_list = load_agents_from_json(client.get_agents())
@@ -63,35 +61,31 @@ if __name__ == '__main__':
                 print(f"edge: source: {tup[0].src}, destination: {tup[0].dst})")
                 graph_cpy.remove_edge(tup[0].src, tup[0].dst)
             except Exception as e:
-                print("Wtf")
+                print("Edge doesnt exist")
+                # that doesnt matter since the moves happen on the original graph and it is strongly connected
 
         # print(graph_cpy)
         copy_algo = GraphAlgo(graph_cpy)
 
-        # ~~~~~ GUI ~~~~~ #
+        """ ~~~~~ GUI ~~~~~ """
         gui.run_gui(info)
-        # ~~~~~ GUI ~~~~~ #
+        """ ~~~~~ GUI ~~~~~ """
 
-        """
-        Algorithm part -> when there is only one agent use thread
-        else, use for loop.
-        """
+        """ Algorithm """
         pokemon_list.sort(reverse=True, key=lambda x: x.value)
         # assign agent for each pokemon
         for pokemon in pokemon_list:
-            # finds an agent for the pokemon
-            agent_id: int = Utils.find_optimal_agent(agent_list, pokemon, copy_algo)
+            agent_id = Utils.find_optimal_agent(agent_list, pokemon, copy_algo)
             pokemon.assigned_agent = agent_id
 
-        stop = False  # global variable, used in threads
+        stop = False  # global variable for threads use
 
-        # check the number of agents
         if len(agent_list) > 1:
-            # loop between the agents in case of multiple agents
+            # loop on agent_list in case of multiple agents
             for agent in agent_list:
                 Utils.run_agent(agent, copy_algo, client, stop)  # run the agent on its path
         else:
-            # use a thread for better results in case of one agent
+            # use threads for better results in case of one agent
             busy_agents = agent_list
             threads = []
             # create thread for the agent
@@ -101,20 +95,21 @@ if __name__ == '__main__':
                 thread.start()
 
             i = 0
-            # loop until the thread stopped
+            # wait for a thread to stop
             while threads[i % len(threads)].is_alive():
                 i += 1
 
-            stop = True  # if the thread stopped
+            stop = True  # if one thread has finished, kill all remaining threads
             for thread in threads:
                 thread.join()
 
-        if gui.stop_button.pressed:  # check if the client has stopped the game
+        if gui.stop_button.pressed:  # if the user stopped the game
             client.stop_connection()
             pygame.quit()
             exit(0)
 
         client.move()
         print(pokemon_list)
+        """ Algorithm """
 
 # game over
