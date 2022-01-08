@@ -55,7 +55,7 @@ if __name__ == '__main__':
     client.start()
     # game started:
     while client.is_running() == 'true':
-        clock.tick(15)
+        clock.tick(10)
         info = load_info_from_json(client.get_info())  # each round, get the info from the server
 
         # initialize lists
