@@ -46,7 +46,7 @@ def find_optimal_agent(agent_list: list, pokemon: Pokemon, graph: GraphAlgo) -> 
                 optimal = agent
 
         optimal.path = path  # update agent path
-        print(optimal.path)
+        # print(optimal.path)
         return optimal.id  # return agent id
 
     else:  # if all are busy, loop over the agents
@@ -57,7 +57,7 @@ def find_optimal_agent(agent_list: list, pokemon: Pokemon, graph: GraphAlgo) -> 
                 return agent.id
 
             # find the shortest path from the agent last destination to the pokemon
-            print("Eyals path: {}".format(check_agent_path(agent, pokemon, graph)[0]))
+            # print("Eyals path: {}".format(check_agent_path(agent, pokemon, graph)[0]))
             weight, temppath = graph.shortest_path(agent.path[-1], pokemon.edge.src)
             weight1, temppath1 = graph.shortest_path(pokemon.edge.src, pokemon.edge.dst)
             weight += weight1
@@ -70,7 +70,7 @@ def find_optimal_agent(agent_list: list, pokemon: Pokemon, graph: GraphAlgo) -> 
                 optimal = agent
 
         optimal.path += path  # update the agent path
-        print(optimal.path)
+        # print(optimal.path)
         return optimal.id
 
 
@@ -129,3 +129,18 @@ def best_agent(algo: GraphAlgo, agent_list, pokemon):
 
     best_agent.path = best_path
     return best_agent
+
+
+def move_agent(algo: GraphAlgo, agent, client):
+    if len(agent.path) > 0 and agent.dest == -1:
+        agent.dest = agent.path.pop(0)
+        next_node = algo.graph.get_node(agent.dest)
+
+        if isinstance(next_node, Pokemon):
+            for key in next_node.out_edges.keys():
+                agent.dest = key
+                break
+
+        command = '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(agent.dest) + '}'
+        print(command)
+        client.choose_next_edge(command)

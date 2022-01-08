@@ -47,11 +47,15 @@ if __name__ == '__main__':
 
     # this command starts the server - the game is running now
     pokemon_list = []
+    prev_temp = []
+    agents = []
+    new_pokemons = False
+    clock = pygame.time.Clock()
 
     client.start()
     # game started:
     while client.is_running() == 'true':
-
+        clock.tick(15)
         info = load_info_from_json(client.get_info())  # each round, get the info from the server
 
         # initialize lists
@@ -59,38 +63,39 @@ if __name__ == '__main__':
         temp = load_pokemons_from_json(client.get_pokemons())
 
         agent_list = load_agents_from_json(client.get_agents())
-        # print("agents: {}".format(len(agent_list)))
+        # for agent in agent_list:
+        #     print(agent)
 
-        # update GUI
-        gui.set_pokemons(temp)
-        gui.set_agents(agent_list)
+        if prev_temp != temp:
+            prev_temp = temp
+            new_pokemons = True
 
-        # go over all pokemons
-        for pokemon in temp:
-            if pokemon not in pokemon_list:
-                # add the pokemon to the helper graph as a node
-                node_id = max(graph_cpy.get_all_v().keys()) + 1
-                pos = pokemon.pos
-                poke_value = pokemon.value
-                type = pokemon.type
-                pokemon.id = node_id
-                graph_cpy.add_node(node_id, pos, poke_value, type)
+        # add pokemons as nodes to the graph
+        if new_pokemons:
+            pokemon_list = []
+            for pokemon in temp:
+                # add pokemon to the graph
+                node_id = max(graph_cpy.nodes.keys()) + 1
+                graph_cpy.add_node(node_id, pokemon.pos, pokemon.value, pokemon.type)
 
-                # find its edge
-                tup = graph_algo.graph.find_edge_for_pokemon(pokemon)
-                graph_cpy.add_edge(tup[0].src, node_id, tup[1])
-                graph_cpy.add_edge(node_id, tup[0].dst, tup[2])
-                poke_node = graph_cpy.get_node(node_id)
-                poke_node.edge = tup[0]
+                # get pokemon and find the edge that it is sitting on
+                new_p = graph_cpy.get_node(node_id)
+                pokemon_edge, w_to, w_from = graph_algo.graph.find_edge_for_pokemon(new_p)
+                new_p.edge = pokemon_edge
+                pokemon_list.append(new_p)
 
-                # delete the original edge
+                # modify graph
+                graph_cpy.add_edge(pokemon_edge.src, node_id, w_to)
+                graph_cpy.add_edge(node_id, pokemon_edge.dst, w_from)
+
                 try:
-                    graph_cpy.remove_edge(tup[0].src, tup[0].dst)
-                except Exception as e:
+                    graph_cpy.remove_edge(pokemon_edge.src, pokemon_edge.dst)
+                except:
                     print("Edge doesnt exist")
 
-                # add the pokemon to the pokemon list
-                pokemon_list.append(poke_node)
+        # update GUI
+        gui.set_pokemons(pokemon_list)
+        gui.set_agents(agent_list)
 
         # ~~~~~ GUI ~~~~~ #
         gui.run_gui(info)
@@ -100,39 +105,29 @@ if __name__ == '__main__':
         Algorithm part -> when there is only one agent use loop
         else, use threads.
         """
-        for pokemon in pokemon_list:
-            agent = Utils.best_agent(copy_algo, agent_list, pokemon)
-            pokemon.assigned_agent = agent.id
 
-        stop = False
+        if new_pokemons:
+            new_pokemons = False
 
-        if len(agent_list) > 1:
-            # loop on agent_list in case of multiple agents
-            for agent in agent_list:
-                Utils.run_agent(agent, copy_algo, client, stop)  # run the agent on its path
+            # remake all lists and calculations
+            agents = agent_list
+
+            # assign each pokemon to an agent
+            for pokemon in pokemon_list:
+                if pokemon.assigned_agent == -1:
+                    agent = Utils.best_agent(copy_algo, agents, pokemon)
+                    pokemon.assigned_agent = agent.id
+
         else:
-            # use threads for better results in case of one agent
-            busy_agents = agent_list
-            threads = []
-            # create thread for the agent
-            for agent in busy_agents:
-                thread = Thread(target=Utils.run_agent, args=(agent, copy_algo, client, stop))
-                threads.append(thread)
-                thread.start()
+            # reposition and update agents
+            for idx, agent in enumerate(agent_list):
+                agents[idx].pos = agent.pos
+                agents[idx].speed = agent.speed
+                agents[idx].value = agent.value
+                agents[idx].dest = agent.dest
 
-            i = 0
-            # wait for a thread to stop
-            while threads[i % len(threads)].is_alive():
-                i += 1
-
-            stop = True  # if one thread has finished, kill all remaining threads
-            for thread in threads:
-                thread.join()
-
-        if gui.stop_button.pressed:  # if the user stopped the game
-            client.stop_connection()
-            pygame.quit()
-            exit(0)
+        # move agents
+        for agent in agents:
+            Utils.move_agent(copy_algo, agent, client)
 
         client.move()
-        print(pokemon_list)
