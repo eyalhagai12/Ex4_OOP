@@ -7,7 +7,7 @@ This is our project of "Pokemon game" in Python.
 
 ## Description
 
-This is our project of  a "Pokemon game" in which there are 'agents' who travel on a graph where 'pokemons' are scattered everywhere.  
+This is our project of  a "Pokemon game" in which there are 'agents' who travel across a graph where 'pokemons' are scattered everywhere.  
 The agents have to collect as many pokemons as they can in cases of 30 and 60 seconds game.  
 In this Project we are communicationg with a game server so we send and receive data that is used to update the game in real time.  
 
