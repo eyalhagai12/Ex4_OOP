@@ -1,6 +1,9 @@
 # Ex4_OOP
 
-This is our project of "Pokemon game" in Python.
+This is our project of "Pokemon game" in Python.  
+![simplescreenrecorder-2022-01-08_15 41 10](https://user-images.githubusercontent.com/77681248/148648287-16850383-06ce-4178-a563-34c4aaad0e48.gif)
+
+
 
 ## Description
 
