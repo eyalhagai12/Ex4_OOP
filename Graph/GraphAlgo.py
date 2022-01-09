@@ -40,7 +40,7 @@ def load_pokemons_from_json(file):
     _dict = json.loads(file)
 
     if isinstance(_dict, int):
-        print("Something is wrong")
+        return -1
 
     pokemons = []
 

@@ -15,7 +15,14 @@ from Game.GameInfo import load_info_from_json
 from Game.Pokemon import Pokemon
 from Graph.GraphAlgo import GraphAlgo, load_pokemons_from_json, load_agents_from_json
 
-DEBUG = True
+DEBUG = False
+STOP = False
+
+
+def stop_run():
+    global STOP
+    STOP = True
+
 
 if __name__ == '__main__':
     # default port
@@ -34,40 +41,44 @@ if __name__ == '__main__':
     graph_cpy = graph_algo.graph.__copy__()
     copy_algo = GraphAlgo(graph_cpy)
 
-    # create am info object and add as needed agents
-    info = load_info_from_json(client.get_info())
-    for i in range(info.agents):
-        client.add_agent("{\"id\":" + str(i) + "}")
-
     # init GUI
     if not DEBUG:
         gui = GUI(graph_algo, [], [], client)
     else:
         gui = GUI(copy_algo, [], [], client)
 
-    # this command starts the server - the game is running now
+    # some variables that we use
     pokemon_list = []
     prev_temp = []
     agents = []
     new_pokemons = False
     clock = pygame.time.Clock()
     new_agents = True
+    init_agents = True
 
+    # init agents positions
+    center, _ = copy_algo.centerPoint()
+
+    # create am info object and add as needed agents
+    info = load_info_from_json(client.get_info())
+    for i in range(info.agents):
+        client.add_agent("{\"id\":" + str(center) + "}")
+
+    # start game
     client.start()
     # game started:
-    while client.is_running() == 'true':
-        clock.tick(8)
+    while client.is_running() == 'true' and not STOP:
+        clock.tick(10)
         info = load_info_from_json(client.get_info())  # each round, get the info from the server
 
         # initialize lists
-        # graph_cpy = graph_algo.graph.__copy__()
+        # get pokemons
         temp = load_pokemons_from_json(client.get_pokemons())
 
+        # init agents
         agent_list = load_agents_from_json(client.get_agents())
-        # for agent in agent_list:
-        #     print(agent)
 
-        if prev_temp != temp:
+        if prev_temp != temp and not temp == -1:
             prev_temp = temp
             new_pokemons = True
 
@@ -99,7 +110,7 @@ if __name__ == '__main__':
         gui.set_agents(agent_list)
 
         # ~~~~~ GUI ~~~~~ #
-        gui.run_gui(info)
+        gui.run_gui(info, stop_run)
         # ~~~~~ GUI ~~~~~ #
 
         """
@@ -131,3 +142,5 @@ if __name__ == '__main__':
                 Utils.move_agent(copy_algo, agent, client)
 
         client.move()
+
+    client.stop()
