@@ -10,9 +10,7 @@ from GUI import GUI
 from Graph.DiGraph import DiGraph
 from client import Client
 import pygame
-from Game.Agent import Agent
 from Game.GameInfo import load_info_from_json
-from Game.Pokemon import Pokemon
 from Graph.GraphAlgo import GraphAlgo, load_pokemons_from_json, load_agents_from_json
 
 DEBUG = False
@@ -59,7 +57,7 @@ if __name__ == '__main__':
     # init agents positions
     center, _ = copy_algo.centerPoint()
 
-    # create am info object and add as needed agents
+    # create an info object and add as needed agents in the center
     info = load_info_from_json(client.get_info())
     for i in range(info.agents):
         client.add_agent("{\"id\":" + str(center) + "}")
@@ -144,3 +142,4 @@ if __name__ == '__main__':
         client.move()
 
     client.stop()
+

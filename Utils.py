@@ -17,9 +17,6 @@ def run_agent(agent: Agent, g_algo: GraphAlgo, client: Client, stop: bool):
             '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(agent.path[1 % len(agent.path)]) + '}')
         agent.pos = g_algo.get_graph().nodes[agent.path[1 % len(agent.path)]].pos
         agent.path.remove(agent.path[0])
-        if isinstance(g_algo.get_graph().get_all_v()[p], Pokemon):
-            client.move()
-            return
 
 
 def find_optimal_agent(agent_list: list, pokemon: Pokemon, graph: GraphAlgo) -> int:
@@ -31,16 +28,16 @@ def find_optimal_agent(agent_list: list, pokemon: Pokemon, graph: GraphAlgo) -> 
     # find free agents
     for agent in agent_list:
         if len(agent.path) == 0:
-            free.append(agent)  # add to the list of free agents
+            free.append(agent)
 
-    if len(free) != 0:  # in case we found free agents
-        for agent in free:  # loop over the free agents
+    if len(free) != 0:  # in case there are free agents
+        for agent in free:  # loop on the free list
             weight, temppath = graph.shortest_path(agent.src,
-                                                   pokemon.edge.src)  # find the shortest path from agent src to pokemon
+                                                   pokemon.edge.src)  # find the shortest path from agent to pokemon
             weight1, temppath1 = graph.shortest_path(pokemon.edge.src, pokemon.edge.dst)
             weight += weight1
             temppath += temppath1
-            # in case we found an agent with shorter path, switch
+            # in case we found an agent with shorter path, set this agent as optimal
             if weight < min_weight:
                 min_weight = weight
                 path = temppath
@@ -63,8 +60,9 @@ def find_optimal_agent(agent_list: list, pokemon: Pokemon, graph: GraphAlgo) -> 
             weight1, temppath1 = graph.shortest_path(pokemon.edge.src, pokemon.edge.dst)
             weight += weight1
             temppath += temppath1
-
-            # in case we found an agent with shorter path, switch
+            
+            # in case we found an agent with a shorter path, set this agent as optimal
+            
             if weight < min_weight:
                 min_weight = weight
                 path = temppath
