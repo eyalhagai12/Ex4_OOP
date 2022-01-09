@@ -6,7 +6,8 @@ class Pokemon(Node):
         super().__init__(id, pos)
         self.value = value
         self.type = type
-        self.assigned_agent = None
+        self.assigned_agent = -1
+        self.edge = None
 
     # def __lt__(self, other):
     #     return self.value < other.value
@@ -14,5 +15,5 @@ class Pokemon(Node):
     # def __gt__(self, other):
     #     return self.value > other.value
     #
-    # def __eq__(self, other):
-    #     return self.value == other.value
+    def __eq__(self, other):
+        return self.pos == other.pos

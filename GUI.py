@@ -113,9 +113,10 @@ class GUI:
             else:
                 pygame.draw.circle(self.screen, Color(255, 0, 255), (x, y), 10)
 
-    def draw_button(self):
+    def draw_button(self, func):
         # draw stop button and more attributes for the user comfort
-        self.stop_button = Button(self.screen, "STOP", self.FONT, 50, 30, (10, 10), 5)
+        if self.stop_button is None:
+            self.stop_button = Button(self.screen, "STOP", self.FONT, 50, 30, (10, 10), 5, func)
         self.stop_button.check_click()
         self.stop_button.draw()
 
@@ -128,7 +129,7 @@ class GUI:
         self.num_of_moves = self.FONT.render(f"Moves: {str(self.info.moves)}", True, Color(255, 255, 255))
         self.screen.blit(self.num_of_moves, (720, 10))
 
-    def run_gui(self, info: GameInfo):
+    def run_gui(self, info: GameInfo, func):
         # check events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -145,10 +146,10 @@ class GUI:
         self.draw_nodes()
         self.draw_agents()
         self.draw_pokemons()
-        self.draw_button()
+        self.draw_button(func)
         self.draw_info()
 
         # update screen changes
         display.update()
         # refresh rate
-        self.clock.tick(10)
+        # self.clock.tick(10)

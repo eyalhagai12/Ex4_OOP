@@ -181,11 +181,21 @@ class DiGraph(GraphInterface):
             dist_edge = math.sqrt(math.pow(src_x - dst_x, 2) + math.pow(src_y - dst_y, 2))
             dist_src_pokemon = math.sqrt(math.pow(src_x - pokemon_x, 2) + math.pow(src_y - pokemon_y, 2))
             dist_pok_dest = math.sqrt(math.pow(dst_x - pokemon_x, 2) + math.pow(dst_y - pokemon_y, 2))
-            if dist_edge + 0.0001 >= dist_pok_dest + dist_src_pokemon:
+            if dist_edge + 0.00015 >= dist_pok_dest + dist_src_pokemon:
                 if (edge.src > edge.dst and pokemon.type > 0) or (edge.src < edge.dst and pokemon.type < 0):
                     weight1 = edge.weight * (dist_src_pokemon / dist_edge)
                     weight2 = edge.weight - weight1
                     return edge, weight1, weight2
+
+    def get_pokemons(self):
+        pokemons = [pokemon for pokemon in self.nodes if isinstance(pokemon, Pokemon)]
+        return pokemons
+
+    def check_pos(self, node: Node):
+        for graph_node in self.nodes.values():
+            if node.compare_pos(graph_node):
+                return False
+        return True
 
     def __repr__(self):
         return f"Graph: |V|={len(self.nodes)} , |E|={len(self.edges)}"
