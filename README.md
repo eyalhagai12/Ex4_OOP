@@ -39,7 +39,7 @@ we make sure that each pokemon is always targeted only by one agent, and we only
 for each agent we iterate over all the pokemons and pick the closest one and then we assign this agent to that pokemon, thus blocking others
 from trying to reach the same pokemon and waste time.
 
-####code in student_code.py:
+#### Code in student_code.py:
 ```
  for agent in agents:
             if agent.dest == -1:
@@ -48,7 +48,7 @@ from trying to reach the same pokemon and waste time.
   
 ```
 
-####code in Utils.py:
+#### Code in Utils.py:
 ```
  closest_pokemon(algo: GraphAlgo, agent, pokemon_list: list):
     """
