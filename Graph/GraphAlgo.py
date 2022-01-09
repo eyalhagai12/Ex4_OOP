@@ -39,6 +39,9 @@ def load_pokemons_from_json(file):
     """
     _dict = json.loads(file)
 
+    if isinstance(_dict, int):
+        print("Something is wrong")
+
     pokemons = []
 
     for pokemon in _dict["Pokemons"]:

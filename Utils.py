@@ -4,6 +4,7 @@ import math as mt
 from Game.Agent import Agent
 from Game.Pokemon import Pokemon
 from Graph.GraphAlgo import GraphAlgo
+from Graph.Node import Node
 from client import Client
 
 
@@ -74,17 +75,23 @@ def find_optimal_agent(agent_list: list, pokemon: Pokemon, graph: GraphAlgo) -> 
         return optimal.id
 
 
-def check_agent_path(agent, pokemon, algo):
-    path = agent.path.copy()
-    path.append(pokemon.id)
-    new_path, path_weight = algo.TSP(path)
-    estimated_path = []
+def check_agent_path(agent, pokemon_list: list, algo):
+    path = [pokemon.id for pokemon in pokemon_list]
+    t_path, path_weight = algo.TSP(path)
+    _, s_path = algo.shortest_path(agent.src, t_path[0])
+    new_path = s_path + t_path
+    new_path.pop(0)
+
+    # clear adjacent duplicates
+    for i in range(len(new_path) - 1):
+        if new_path[i] == new_path[i + 1]:
+            new_path[i] = -1
 
     for idx in new_path:
-        if idx not in estimated_path:
-            estimated_path.append(idx)
+        if idx == -1:
+            new_path.remove(-1)
 
-    return estimated_path, path_weight
+    return new_path
 
 
 def current_path_weight(algo: GraphAlgo, agent):
@@ -133,6 +140,7 @@ def best_agent(algo: GraphAlgo, agent_list, pokemon):
 
 def move_agent(algo: GraphAlgo, agent, client):
     if len(agent.path) > 0 and agent.dest == -1:
+        agent.src = agent.dest
         agent.dest = agent.path.pop(0)
         next_node = algo.graph.get_node(agent.dest)
 
@@ -144,3 +152,34 @@ def move_agent(algo: GraphAlgo, agent, client):
         command = '{"agent_id":' + str(agent.id) + ', "next_node_id":' + str(agent.dest) + '}'
         print(command)
         client.choose_next_edge(command)
+
+
+def closest_pokemon(algo: GraphAlgo, agent, pokemon_list: list):
+    """
+    Find the closest pokemon to a given agent
+    """
+    pokemon_list.sort(key=lambda x: x.value, reverse=True)
+    min_weight = math.inf
+    c_pokemon = None
+    best_path = []
+
+    # loop over all pokemons and find the closest
+    for pokemon in pokemon_list:
+        if pokemon.assigned_agent == -1 or pokemon.assigned_agent == agent.id:
+            weight, path = algo.shortest_path(agent.src, pokemon.edge.src)
+            edge_weight = pokemon.edge.weight
+            path.append(algo.graph.get_node(pokemon.edge.dst).id)
+
+            total_weight = (weight + edge_weight) / pokemon.value
+
+            if total_weight < min_weight:
+                c_pokemon = pokemon
+                min_weight = total_weight
+                best_path = path
+
+    if c_pokemon:
+        best_path.pop(0)
+        c_pokemon.assigned_agent = agent.id
+        agent.path = best_path
+
+    return c_pokemon

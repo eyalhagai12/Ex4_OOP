@@ -51,11 +51,12 @@ if __name__ == '__main__':
     agents = []
     new_pokemons = False
     clock = pygame.time.Clock()
+    new_agents = True
 
     client.start()
     # game started:
     while client.is_running() == 'true':
-        clock.tick(10)
+        clock.tick(8)
         info = load_info_from_json(client.get_info())  # each round, get the info from the server
 
         # initialize lists
@@ -106,18 +107,14 @@ if __name__ == '__main__':
         else, use threads.
         """
 
+        # stop adding pokemons
         if new_pokemons:
             new_pokemons = False
 
-            # remake all lists and calculations
+        # update agents
+        if new_agents:
+            new_agents = False
             agents = agent_list
-
-            # assign each pokemon to an agent
-            for pokemon in pokemon_list:
-                if pokemon.assigned_agent == -1:
-                    agent = Utils.best_agent(copy_algo, agents, pokemon)
-                    pokemon.assigned_agent = agent.id
-
         else:
             # reposition and update agents
             for idx, agent in enumerate(agent_list):
@@ -125,9 +122,12 @@ if __name__ == '__main__':
                 agents[idx].speed = agent.speed
                 agents[idx].value = agent.value
                 agents[idx].dest = agent.dest
+                agents[idx].src = agent.src
 
-        # move agents
+        # find closest pokemon and move agents of there are more than one agent
         for agent in agents:
-            Utils.move_agent(copy_algo, agent, client)
+            if agent.dest == -1:
+                pokemon = Utils.closest_pokemon(copy_algo, agent, pokemon_list)
+                Utils.move_agent(copy_algo, agent, client)
 
         client.move()
