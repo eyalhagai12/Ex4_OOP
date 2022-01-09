@@ -32,44 +32,54 @@ In this Project we are communicationg with a game server so we send and receive 
 * Pygame
 
 ## Game Algorithm
-The main problem was to move the agents in an efficient way across the graph.  
-At first, we thought that using the BFS algorithm would be enough, but since the edges of the graph are weighted,  
-we have come to the conclusion that using the Dijkstra algortihm for shortest paths would be the better option.  
-```
-Algorithm:
-for pokemon in pokemons:
-    agent_id = find_optimal_agent(agents, pokemon, graph)
-    pokemon.assigned_agent = agent_id
+the algorithm we chose is very simple and yields good results. first we initialize each agent in the node that is the center of the graph. 
+then, in each iteration we look at each agents position and send it to the closest pokemon to him (this is done using shortest path with djikstra).
+we make sure that each pokemon is always targeted only by one agent, and we only do the calculation for an agent when the agent is not moving.
 
-find_optimal_agent(agents, pokemon, graph):
-    minimum_weight = INFINITY
-    path = new List
-    optimal = none
-    for agent in agents:
-        if agent is free:
-           weight, temppath = graph.shortest_path(agent.src, pokemon.src)
-           weight1, temppath1 = graph.shortest_path(pokemon.src, pokemon.dst)
-           weight += weight1
-           temppath += temppath1
-        else: 
-           weight, temppath = graph.shortest_path(agent.path[last], pokemon.src)
-           weight1, temppath1 = graph.shortest_path(pokemon.src, pokemon.dst)
-           weight += weight1
-           temppath += temppath1
-           
-        if weight < min_weight:
-           min_weight = weight
-           path = temppath
-           optimal = agent
-    
-    optimal.path = path
-    return optimal.id
-    
-shortest_path(graph, source, destination):
-    destination.weight, path = dijkstra(graph, source)
-    return destination.weight, path
+for each agent we iterate over all the pokemons and pick the closest one and then we assign this agent to that pokemon, thus blocking others
+from trying to reach the same pokemon and waste time.
+
+####code in student_code.py:
+```
+ for agent in agents:
+            if agent.dest == -1:
+                pokemon = Utils.closest_pokemon(copy_algo, agent, pokemon_list)
+                Utils.move_agent(copy_algo, agent, client)
+  
 ```
 
+####code in Utils.py:
+```
+ closest_pokemon(algo: GraphAlgo, agent, pokemon_list: list):
+    """
+    Find the closest pokemon to a given agent
+    """
+    pokemon_list.sort(key=lambda x: x.value, reverse=True)
+    min_weight = math.inf
+    c_pokemon = None
+    best_path = []
+
+    # loop over all pokemons and find the closest
+    for pokemon in pokemon_list:
+        if pokemon.assigned_agent == -1 or pokemon.assigned_agent == agent.id:
+            weight, path = algo.shortest_path(agent.src, pokemon.edge.src)
+            edge_weight = pokemon.edge.weight
+            path.append(algo.graph.get_node(pokemon.edge.dst).id)
+
+            total_weight = (weight + edge_weight) / pokemon.value
+
+            if total_weight < min_weight:
+                c_pokemon = pokemon
+                min_weight = total_weight
+                best_path = path
+
+    if c_pokemon:
+        best_path.pop(0)
+        c_pokemon.assigned_agent = agent.id
+        agent.path = best_path
+
+    return c_pokemon
+```
 
 ## Sources
 
