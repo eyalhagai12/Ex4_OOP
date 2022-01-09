@@ -172,13 +172,13 @@ class GraphAlgo(GraphAlgoInterface):
         path = make_shortest_list(self.graph.get_node(destination))
         return self.graph.get_node(destination).get_weight(), path
 
-    def TSP(self, node_lst: list[int]) -> (list[int], float):
-        """
-        Finds the shortest path that visits all the nodes in the list
-        @param node_lst: A list of nodes id's
-        @returns A list of the nodes id's in the path, and the overall distance
-        """
-        return custom_search(self.graph, node_lst)
+    # def TSP(self, node_lst: list[int]) -> (list[int], float):
+    #     """
+    #     Finds the shortest path that visits all the nodes in the list
+    #     @param node_lst: A list of nodes id's
+    #     @returns A list of the nodes id's in the path, and the overall distance
+    #     """
+    #     return custom_search(self.graph, node_lst)
 
     def plot_graph(self) -> None:
         """
